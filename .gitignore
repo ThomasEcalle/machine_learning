@@ -1,0 +1,8 @@
+library/cmake-build-debug
+machine_learning_example/.vs
+machine_learning_example/Assembly-CSharp.csproj
+machine_learning_example/Library
+machine_learning_example/Logs
+machine_learning_example/machine_learning_example.sln
+machine_learning_example/obj
+machine_learning_example/Temp
