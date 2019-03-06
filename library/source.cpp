@@ -4,6 +4,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <cstdio>
 
 //  Activation function
 int sign(double number)
@@ -18,9 +19,14 @@ double randomDouble(float min, float max)
     return min + scale * (max - min);      /* [min, max] */
 }
 
-
 extern "C"
 {
+
+// Fake function to test the pipeline
+int foo()
+{
+    return 42;
+}
 
 //  création du modele = besoin de créer un tableau de double représentant les poids
 //  function createModel(nombre d'inputs pris par le model) : tableau représentant les poids
@@ -121,18 +127,3 @@ void trainLinearClassif(double *model, const double modelSize, double *inputs, c
 //double linear_classify(double *model, double *input, int inputSize);
 //double linear_regression(double *model, double *input, int inputSize);
 }
-
-//Pseudo code d'exemple pour le modèle linéaire
-
-
-// function trainLinearRegression(double* model,
-//                                  double ** inputs,
-//                                  double * expectedOutputs,
-//                                  double learningRate,
-//                                  int nbIterations)
-//// Pour i de 0 à nbEpochs
-////// Pour chaque index, input dans inputs
-/////// gxk = inferenceLinearClassif(model, input);
-/////// yK = expectedOutputs[input];
-///////// Pour w = 0; w <= nbINputs; w++
-/////////// model[w] += learningRate * (yK - gxK) * (si w == 0 ? 1 : input[w -1])
