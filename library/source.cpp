@@ -5,9 +5,9 @@
 extern "C"
 {
 
-    int return42()
+    int jose()
     {
-        return 42;
+        return 25;
     }
 }
 
