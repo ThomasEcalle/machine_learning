@@ -106,13 +106,15 @@ void trainLinearClassif(double *model, const double modelSize, double *inputs, c
 {
     for (int i = 0; i < nbEpochs; ++i)
     {
+        int expectedOutputsIndex = 0;
         for (int inputsIndex = 0; inputsIndex < inputsSize; inputsIndex += inputElementSIze)
         {
-            double* input = inputs + inputElementSIze * sizeof(double);
+            double *input = inputs + inputElementSIze * sizeof(double);
 
             auto gxk = inferenceLinearClassif(model, modelSize, input);
-            auto yK = expectedOutputs[inputsIndex / inputElementSIze];
+            auto yK = expectedOutputs[expectedOutputsIndex];
 
+            expectedOutputsIndex++;
             for (int w = 0; w <= inputsSize; w++)
             {
                 model[w] += learningRate * (yK - gxk) * (w == 0 ? 1 : inputs[w - 1]);
