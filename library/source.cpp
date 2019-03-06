@@ -108,8 +108,7 @@ void trainLinearClassif(double *model, const double modelSize, double *inputs, c
     {
         for (int inputsIndex = 0; inputsIndex < inputsSize; inputsIndex += inputElementSIze)
         {
-            auto *input = static_cast<double *>(malloc(sizeof(double) * inputElementSIze));
-            std::memcpy(&input, &inputs[inputsIndex], inputElementSIze * sizeof(double));
+            double* input = inputs + inputElementSIze * sizeof(double);
 
             auto gxk = inferenceLinearClassif(model, modelSize, input);
             auto yK = expectedOutputs[inputsIndex / inputElementSIze];
