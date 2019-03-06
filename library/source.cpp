@@ -25,7 +25,7 @@ extern "C"
 // Fake function to test the pipeline
 int foo()
 {
-    return 42;
+    return 454;
 }
 
 //  création du modele = besoin de créer un tableau de double représentant les poids
@@ -37,12 +37,14 @@ double *createModel(int dimensions)
 {
     auto *weights = new double[dimensions + 1];
 
+
     // Weights initialization
-    for (int i = 0; i < dimensions; i++)
+    for (int i = 0; i <= dimensions; i++)
     {
         double random = randomDouble(-1, 1);
         weights[i] = random;
     }
+
 
     return weights;
 }
@@ -59,10 +61,10 @@ void linear_remove_model(double *model)
 //// pour x de 1 <= model.taille
 ////// total += model[i] * inputs[i-1];
 //// return total;
-double inferenceRegressionClassif(const double *model, int modelSize, const double *inputs)
+double inferenceRegressionClassif(const double *model, int nbInputs, const double *inputs)
 {
     double total = model[0];
-    for (auto i = 1; i <= modelSize; i++)
+    for (auto i = 1; i <= nbInputs; i++)
     {
         total += inputs[i - 1] * model[i];
     }
@@ -78,9 +80,9 @@ double inferenceRegressionClassif(const double *model, int modelSize, const doub
 //// pour x de 1 <= model.taille
 ////// table += model[i] * inputs[i-1];
 //// return Sign(total);
-double inferenceLinearClassif(const double *model, int modelSize, const double *inputs)
+double inferenceLinearClassif(const double *model, int nbInputs, const double *inputs)
 {
-    return sign(inferenceRegressionClassif(model, modelSize, inputs));
+    return sign(inferenceRegressionClassif(model, nbInputs, inputs));
 }
 
 // Les inputs sont des tableaux de tableau car un tzableau de toutes les lignes de la BDD
@@ -98,7 +100,10 @@ double inferenceLinearClassif(const double *model, int modelSize, const double *
 /////// yK = expectedOutputs[input];
 ///////// Pour w = 0; w <= nbINputs; w++
 /////////// model[w] += learningRate * (yK - gxK) * (si w == 0 ? 1 : input[w -1])
-void trainLinearClassif(double *model, const double modelSize, double *inputs, const int inputsSize,
+void trainLinearClassif(double *model,
+                        const double modelSize,
+                        double *inputs,
+                        const int inputsSize,
                         const int inputElementSIze,
                         double *expectedOutputs,
                         double learningRate,
@@ -106,14 +111,20 @@ void trainLinearClassif(double *model, const double modelSize, double *inputs, c
 {
     for (int i = 0; i < nbEpochs; ++i)
     {
-        for (int inputsIndex = 0; inputsIndex < inputsSize; inputsIndex += inputElementSIze)
+        int expectedOutputsIndex = 0;
+        for (int inputsIndex = 0; inputsIndex <= inputsSize; inputsIndex += inputElementSIze)
         {
-            double* input = inputs + inputElementSIze * sizeof(double);
+            auto *input = new double[inputElementSIze];
+            for (int temp = 0; temp < inputElementSIze; temp++)
+            {
+                input[temp] = inputs[inputsIndex + temp];
+            }
 
-            auto gxk = inferenceLinearClassif(model, modelSize, input);
-            auto yK = expectedOutputs[inputsIndex / inputElementSIze];
+            auto gxk = inferenceLinearClassif(model, inputElementSIze, input);
+            auto yK = expectedOutputs[expectedOutputsIndex];
+            expectedOutputsIndex++;
 
-            for (int w = 0; w <= inputsSize; w++)
+            for (int w = 0; w <= inputElementSIze; w++)
             {
                 model[w] += learningRate * (yK - gxk) * (w == 0 ? 1 : inputs[w - 1]);
             }
