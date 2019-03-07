@@ -5,6 +5,15 @@
 #include <cstdlib>
 #include <cstring>
 #include <cstdio>
+#include <iostream>
+
+void printArray(double *array, int size)
+{
+    for (int i = 0; i < size; ++i)
+    {
+        std::cout << "index : " << i << " -> " << array[i] << std::endl;
+    }
+}
 
 //  Activation function
 int sign(double number)
@@ -25,7 +34,7 @@ extern "C"
 // Fake function to test the pipeline
 int foo()
 {
-    return 454;
+    return 5;
 }
 
 //  création du modele = besoin de créer un tableau de double représentant les poids
@@ -37,12 +46,10 @@ double *createModel(int dimensions)
 {
     auto *weights = new double[dimensions + 1];
 
-
     // Weights initialization
     for (int i = 0; i <= dimensions; i++)
     {
-        double random = randomDouble(-1, 1);
-        weights[i] = random;
+        weights[i] = randomDouble(-1, 1);
     }
 
 
@@ -101,10 +108,9 @@ double inferenceLinearClassif(const double *model, int nbInputs, const double *i
 ///////// Pour w = 0; w <= nbINputs; w++
 /////////// model[w] += learningRate * (yK - gxK) * (si w == 0 ? 1 : input[w -1])
 void trainLinearClassif(double *model,
-                        const double modelSize,
                         double *inputs,
                         const int inputsSize,
-                        const int inputElementSIze,
+                        const int inputElementSize,
                         double *expectedOutputs,
                         double learningRate,
                         int nbEpochs)
@@ -112,19 +118,24 @@ void trainLinearClassif(double *model,
     for (int i = 0; i < nbEpochs; ++i)
     {
         int expectedOutputsIndex = 0;
-        for (int inputsIndex = 0; inputsIndex <= inputsSize; inputsIndex += inputElementSIze)
+        for (int inputsIndex = 0; inputsIndex < inputsSize; inputsIndex += inputElementSize)
         {
-            auto *input = new double[inputElementSIze];
-            for (int temp = 0; temp < inputElementSIze; temp++)
+            auto *input = new double[inputElementSize];
+            for (int temp = 0; temp < inputElementSize; temp++)
             {
                 input[temp] = inputs[inputsIndex + temp];
             }
+            std::cout << "The " << inputElementSize << " inputs are" << std::endl;
+            printArray(input, inputElementSize);
 
-            auto gxk = inferenceLinearClassif(model, inputElementSIze, input);
+            auto gxk = inferenceLinearClassif(model, inputElementSize, input);
             auto yK = expectedOutputs[expectedOutputsIndex];
+
+            std::cout << "Expected output is  " << yK << std::endl;
+
             expectedOutputsIndex++;
 
-            for (int w = 0; w <= inputElementSIze; w++)
+            for (int w = 0; w <= inputElementSize; w++)
             {
                 model[w] += learningRate * (yK - gxk) * (w == 0 ? 1 : inputs[w - 1]);
             }
@@ -132,8 +143,40 @@ void trainLinearClassif(double *model,
         }
     }
 }
-//int linear_firt_regression(double *model, double, double *inputs, int inputsSize, int inputSize, double *outputs, int outputsSize);
-//int linear_fit_classification_rosenblatt(double *modem, double *inputs, int inputsSize, double *outputs, int outputsSize);
-//double linear_classify(double *model, double *input, int inputSize);
-//double linear_regression(double *model, double *input, int inputSize);
+
+}
+
+int main()
+{
+    auto *model = createModel(2);
+
+    // Data to trained
+    int inputSize = 6;
+    auto *dataToTrain = new double[inputSize]{3, 2, 2, 3, 8, 8};
+
+    // Expected results
+    int expectedResultsSize = inputSize / 2;
+    auto *expectedResults = new double[expectedResultsSize]{1, 1, -1};
+
+    trainLinearClassif(model, dataToTrain, inputSize, 2, expectedResults, 0.01, 10000);
+
+
+    // New Inputs to test
+    int nbPositive = 0;
+    int nbNegative = 0;
+    for (int i = 0; i < 100; ++i)
+    {
+        double fakeX = randomDouble(1, 10);
+        double fakeY = randomDouble(1, 10);
+        double result = inferenceLinearClassif(model, 2, new double[2]{fakeX, fakeY});
+        result == -1 ? nbNegative++ : nbPositive++;
+    }
+
+    std::cout << "Nb negative = " << nbNegative << std::endl;
+    std::cout << "Nb positive = " << nbPositive << std::endl;
+
+
+
+    //printArray(model, 3);
+    //printArray(dataToTrain, 6);
 }
