@@ -6,6 +6,8 @@
 #include <cstring>
 #include <cstdio>
 #include <iostream>
+#include <cmath>
+#include <Eigen>
 
 void printArray(double *array, int size)
 {
@@ -63,12 +65,12 @@ void linear_remove_model(double *model)
 }
 
 
-// function inferenceRegressionClassif(leMOdel: TableauDeDoubleRepresentantLesPoids, double *tableauInputs, )
+// function regressionLineaire(leMOdel: TableauDeDoubleRepresentantLesPoids, double *tableauInputs, )
 //// total = model[0];
 //// pour x de 1 <= model.taille
 ////// total += model[i] * inputs[i-1];
 //// return total;
-double inferenceRegressionClassif(const double *model, int nbInputs, const double *inputs)
+double regressionLineaire(double *model, int nbInputs, double *inputs)
 {
     double total = model[0];
     for (auto i = 1; i <= nbInputs; i++)
@@ -87,9 +89,9 @@ double inferenceRegressionClassif(const double *model, int nbInputs, const doubl
 //// pour x de 1 <= model.taille
 ////// table += model[i] * inputs[i-1];
 //// return Sign(total);
-double inferenceLinearClassif(const double *model, int nbInputs, const double *inputs)
+double inferenceLinearClassif(double *model, int nbInputs, double *inputs)
 {
-    return sign(inferenceRegressionClassif(model, nbInputs, inputs));
+    return sign(regressionLineaire(model, nbInputs, inputs));
 }
 
 // Les inputs sont des tableaux de tableau car un tzableau de toutes les lignes de la BDD
@@ -125,23 +127,63 @@ void trainLinearClassif(double *model,
             {
                 input[temp] = inputs[inputsIndex + temp];
             }
-            std::cout << "The " << inputElementSize << " inputs are" << std::endl;
-            printArray(input, inputElementSize);
 
             auto gxk = inferenceLinearClassif(model, inputElementSize, input);
             auto yK = expectedOutputs[expectedOutputsIndex];
-
-            std::cout << "Expected output is  " << yK << std::endl;
 
             expectedOutputsIndex++;
 
             for (int w = 0; w <= inputElementSize; w++)
             {
-                model[w] += learningRate * (yK - gxk) * (w == 0 ? 1 : inputs[w - 1]);
+                model[w] += learningRate * (yK - gxk) * (w == 0 ? 1 : input[w - 1]);
             }
 
         }
     }
+}
+
+void trainRegression(double *model, double *inputs, const int inputsSize, const int inputElementSize,
+                     double *expectedOutputs,
+                     int expectedOutputsSize)
+{
+    // Matrix creation
+    Eigen::MatrixXd matrixX(inputsSize / inputElementSize, inputElementSize + 1);
+    Eigen::MatrixXd matrixY(expectedOutputsSize, 1);
+
+    // Matrix Y
+    for (int expectedOutputsIndex = 0; expectedOutputsIndex < expectedOutputsSize; ++expectedOutputsIndex)
+    {
+        matrixY(expectedOutputsIndex, 0) = expectedOutputs[expectedOutputsIndex];
+    }
+
+    // Matrix X
+    int lineIndex = 0;
+    for (int inputIndex = 0; inputIndex < inputsSize; inputIndex += inputElementSize)
+    {
+        auto *inputElement = new double[inputElementSize];
+        for (int temp = 0; temp < inputElementSize; temp++)
+        {
+            inputElement[temp] = inputs[inputIndex + temp];
+        }
+
+        matrixX(lineIndex, 0) = 1;
+        for (int elementIndex = 0; elementIndex < inputElementSize; ++elementIndex)
+        {
+            matrixX(lineIndex, elementIndex + 1) = inputElement[elementIndex];
+        }
+
+        lineIndex++;
+    }
+
+    auto resultMatrix = (((matrixX.transpose() * matrixX).inverse() * matrixX.transpose()) * matrixY);
+    for (int w = 0; w <= inputElementSize; w++)
+    {
+        model[w] = resultMatrix(w);
+    }
+
+    std::cout << "Matrix X = \n" << matrixX << std::endl;
+    std::cout << "Matrix Y = \n" << matrixY << std::endl;
+    std::cout << "Mega resultat = \n" << resultMatrix << std::endl;
 }
 
 }
@@ -149,19 +191,29 @@ void trainLinearClassif(double *model,
 int main()
 {
     auto *model = createModel(2);
+    auto *dataToTrain = new double[6]{2, 3, 8, 0, 3, 1};
+    auto *expectedResults = new double[3]{1, -1, -1};
+
+    trainRegression(model, dataToTrain, 6, 2, expectedResults, 3);
+
+    std::cout << "Fin algo" << std::endl;
+
+    /*
+    auto *model = createModel(2);
 
     // Data to trained
     int inputSize = 6;
-    auto *dataToTrain = new double[inputSize]{3, 2, 2, 3, 8, 8};
+    auto *dataToTrain = new double[inputSize]{1, 1, 1, 0, 0, 1};
 
     // Expected results
     int expectedResultsSize = inputSize / 2;
-    auto *expectedResults = new double[expectedResultsSize]{1, 1, -1};
+    auto *expectedResults = new double[expectedResultsSize]{1, -1, -1};
 
-    trainLinearClassif(model, dataToTrain, inputSize, 2, expectedResults, 0.01, 10000);
+    trainLinearClassif(model, dataToTrain, inputSize, 2, expectedResults, 0.001, 1);
 
 
     // New Inputs to test
+
     int nbPositive = 0;
     int nbNegative = 0;
     for (int i = 0; i < 100; ++i)
@@ -172,11 +224,19 @@ int main()
         result == -1 ? nbNegative++ : nbPositive++;
     }
 
-    std::cout << "Nb negative = " << nbNegative << std::endl;
-    std::cout << "Nb positive = " << nbPositive << std::endl;
+    for (int i = 0; i < 3; ++i)
+    {
+        std::cout << inferenceLinearClassif(model, 2, dataToTrain + (i * 2)) << std::endl;
+    }
+
+
+    //std::cout << "Nb negative = " << nbNegative << std::endl;
+    //std::cout << "Nb positive = " << nbPositive << std::endl;
 
 
 
     //printArray(model, 3);
     //printArray(dataToTrain, 6);
+
+     */
 }
